@@ -1,0 +1,472 @@
+
+---
+
+# Aplicando i18n ao projeto
+
+Aqui está o código completo com internacionalização para inglês e português brasileiro. O idioma é detectado automaticamente pelo navegador e pode ser alternado manualmente.
+
+```html
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="title">CobrarMe · Calculadora de Dívidas</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0a0a0a;
+            --surface: #141414;
+            --surface-hover: #1a1a1a;
+            --border: #262626;
+            --text: #f5f5f5;
+            --text-muted: #a3a3a3;
+            --accent: #22c55e;
+            --accent-hover: #16a34a;
+            --danger: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .lang-switch {
+            position: fixed;
+            top: 1.5rem;
+            right: 1.5rem;
+            display: flex;
+            gap: 0.5rem;
+            z-index: 100;
+        }
+
+        .lang-switch button {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            padding: 0.4rem 0.8rem;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            width: auto;
+        }
+
+        .lang-switch button.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #000;
+        }
+
+        .lang-switch button:hover:not(.active) {
+            border-color: var(--accent);
+            color: var(--text);
+        }
+
+        .container {
+            width: 100%;
+            max-width: 480px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .logo {
+            font-size: 2rem;
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            margin-bottom: 0.5rem;
+        }
+
+        .logo span {
+            color: var(--accent);
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+        }
+
+        .field {
+            margin-bottom: 1.5rem;
+        }
+
+        .field:last-of-type {
+            margin-bottom: 2rem;
+        }
+
+        label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        input {
+            width: 100%;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 0.9rem 1rem;
+            color: var(--text);
+            font-size: 1rem;
+            font-family: 'Inter', sans-serif;
+            transition: border-color 0.2s ease;
+            outline: none;
+        }
+
+        input:focus {
+            border-color: var(--accent);
+        }
+
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            filter: invert(0.7);
+            cursor: pointer;
+        }
+
+        button.calculate {
+            width: 100%;
+            background: var(--accent);
+            color: #000;
+            border: none;
+            border-radius: 10px;
+            padding: 1rem;
+            font-size: 1rem;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            transition: background 0.2s ease, transform 0.1s ease;
+        }
+
+        button.calculate:hover {
+            background: var(--accent-hover);
+        }
+
+        button.calculate:active {
+            transform: scale(0.98);
+        }
+
+        .result {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border);
+            display: none;
+        }
+
+        .result.active {
+            display: block;
+            animation: fadeIn 0.4s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .result-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 0;
+            font-size: 0.9rem;
+        }
+
+        .result-row .label {
+            color: var(--text-muted);
+        }
+
+        .result-row .value {
+            font-weight: 500;
+        }
+
+        .result-total {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 1rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .result-total .label {
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .result-total .value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .note {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background: rgba(34, 197, 94, 0.08);
+            border: 1px solid rgba(34, 197, 94, 0.2);
+            border-radius: 10px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        .note strong {
+            color: var(--accent);
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 2rem;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        @media (max-width: 480px) {
+            .card {
+                padding: 1.5rem;
+            }
+
+            .logo {
+                font-size: 1.6rem;
+            }
+
+            .lang-switch {
+                top: 1rem;
+                right: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="lang-switch">
+        <button data-lang="pt-BR" class="active">PT</button>
+        <button data-lang="en">EN</button>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <div class="logo">Cobrar<span>Me</span></div>
+            <p class="subtitle" data-i18n="subtitle">Calculadora de dívidas com juros</p>
+        </div>
+
+        <div class="card">
+            <div class="field">
+                <label for="valorOriginal" data-i18n="labelAmount">Valor original da dívida (R$)</label>
+                <input type="number" id="valorOriginal" placeholder="0,00" step="0.01" min="0" data-i18n-placeholder="placeholderAmount">
+            </div>
+
+            <div class="field">
+                <label for="dataInicial" data-i18n="labelDate">Data inicial da dívida</label>
+                <input type="date" id="dataInicial">
+            </div>
+
+            <button class="calculate" onclick="calcular()" data-i18n="buttonCalculate">Calcular valor atualizado</button>
+
+            <div class="result" id="resultado">
+                <div class="result-row">
+                    <span class="label" data-i18n="labelOriginal">Valor original</span>
+                    <span class="value" id="rOriginal">R$ 0,00</span>
+                </div>
+                <div class="result-row">
+                    <span class="label" data-i18n="labelPeriod">Período</span>
+                    <span class="value" id="rPeriodo">0 meses</span>
+                </div>
+                <div class="result-row">
+                    <span class="label" data-i18n="labelInterest">Juros (1% a.m.)</span>
+                    <span class="value" id="rJuros">R$ 0,00</span>
+                </div>
+                <div class="result-total">
+                    <span class="label" data-i18n="labelTotal">Total atualizado</span>
+                    <span class="value" id="rTotal">R$ 0,00</span>
+                </div>
+
+                <div class="note">
+                    <strong data-i18n="noteTitle">Base legal:</strong>
+                    <span data-i18n="noteBody">Juros de mora de até 1% ao mês, conforme o Art. 406 do Código Civil Brasileiro, aplicáveis a partir da data de vencimento da dívida.</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer" data-i18n="footer">
+            CobrarMe · Cálculo estimativo · Não substitui orientação jurídica
+        </div>
+    </div>
+
+    <script>
+        const translations = {
+            'pt-BR': {
+                title: 'CobrarMe · Calculadora de Dívidas',
+                subtitle: 'Calculadora de dívidas com juros',
+                labelAmount: 'Valor original da dívida (R$)',
+                placeholderAmount: '0,00',
+                labelDate: 'Data inicial da dívida',
+                buttonCalculate: 'Calcular valor atualizado',
+                labelOriginal: 'Valor original',
+                labelPeriod: 'Período',
+                labelInterest: 'Juros (1% a.m.)',
+                labelTotal: 'Total atualizado',
+                noteTitle: 'Base legal:',
+                noteBody: 'Juros de mora de até 1% ao mês, conforme o Art. 406 do Código Civil Brasileiro, aplicáveis a partir da data de vencimento da dívida.',
+                footer: 'CobrarMe · Cálculo estimativo · Não substitui orientação jurídica',
+                monthsSingular: 'mês',
+                monthsPlural: 'meses',
+                alertInvalidAmount: 'Informe um valor válido para a dívida.',
+                alertInvalidDate: 'Informe a data inicial da dívida.',
+                alertFutureDate: 'A data inicial não pode ser no futuro.',
+                currency: 'BRL',
+                locale: 'pt-BR'
+            },
+            'en': {
+                title: 'CobrarMe · Debt Calculator',
+                subtitle: 'Debt calculator with interest',
+                labelAmount: 'Original debt amount (R$)',
+                placeholderAmount: '0.00',
+                labelDate: 'Debt start date',
+                buttonCalculate: 'Calculate updated value',
+                labelOriginal: 'Original amount',
+                labelPeriod: 'Period',
+                labelInterest: 'Interest (1% per month)',
+                labelTotal: 'Updated total',
+                noteTitle: 'Legal basis:',
+                noteBody: 'Default interest of up to 1% per month, according to Article 406 of the Brazilian Civil Code, applicable from the debt due date.',
+                footer: 'CobrarMe · Estimated calculation · Does not replace legal advice',
+                monthsSingular: 'month',
+                monthsPlural: 'months',
+                alertInvalidAmount: 'Please enter a valid debt amount.',
+                alertInvalidDate: 'Please enter the debt start date.',
+                alertFutureDate: 'The start date cannot be in the future.',
+                currency: 'BRL',
+                locale: 'en-US'
+            }
+        };
+
+        let currentLang = 'pt-BR';
+
+        function detectLanguage() {
+            const browserLang = navigator.language || navigator.userLanguage;
+            if (browserLang.toLowerCase().startsWith('pt')) {
+                return 'pt-BR';
+            }
+            return 'en';
+        }
+
+        function applyTranslations(lang) {
+            currentLang = lang;
+            const t = translations[lang];
+
+            document.documentElement.lang = lang;
+            document.title = t.title;
+
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (t[key]) {
+                    el.textContent = t[key];
+                }
+            });
+
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+                const key = el.getAttribute('data-i18n-placeholder');
+                if (t[key]) {
+                    el.placeholder = t[key];
+                }
+            });
+
+            document.querySelectorAll('.lang-switch button').forEach(btn => {
+                btn.classList.toggle('active', btn.getAttribute('data-lang') === lang);
+            });
+        }
+
+        function formatarMoeda(valor) {
+            const t = translations[currentLang];
+            return valor.toLocaleString(t.locale, {
+                style: 'currency',
+                currency: t.currency
+            });
+        }
+
+        function calcular() {
+            const t = translations[currentLang];
+            const valorOriginal = parseFloat(document.getElementById('valorOriginal').value);
+            const dataInicialInput = document.getElementById('dataInicial').value;
+
+            if (!valorOriginal || valorOriginal <= 0) {
+                alert(t.alertInvalidAmount);
+                return;
+            }
+
+            if (!dataInicialInput) {
+                alert(t.alertInvalidDate);
+                return;
+            }
+
+            const dataInicial = new Date(dataInicialInput + 'T00:00:00');
+            const dataAtual = new Date();
+            dataAtual.setHours(0, 0, 0, 0);
+
+            if (dataInicial > dataAtual) {
+                alert(t.alertFutureDate);
+                return;
+            }
+
+            let meses = (dataAtual.getFullYear() - dataInicial.getFullYear()) * 12;
+            meses -= dataInicial.getMonth();
+            meses += dataAtual.getMonth();
+
+            if (dataAtual.getDate() < dataInicial.getDate()) {
+                meses--;
+            }
+
+            if (meses < 0) meses = 0;
+
+            const taxaMensal = 0.01;
+            const juros = valorOriginal * taxaMensal * meses;
+            const total = valorOriginal + juros;
+
+            document.getElementById('rOriginal').textContent = formatarMoeda(valorOriginal);
+            document.getElementById('rPeriodo').textContent = meses + ' ' + (meses === 1 ? t.monthsSingular : t.monthsPlural);
+            document.getElementById('rJuros').textContent = formatarMoeda(juros);
+            document.getElementById('rTotal').textContent = formatarMoeda(total);
+
+            document.getElementById('resultado').classList.add('active');
+        }
+
+        document.querySelectorAll('.lang-switch button').forEach(btn => {
+            btn.addEventListener('click', () => {
+                applyTranslations(btn.getAttribute('data-lang'));
+            });
+        });
+
+        applyTranslations(detectLanguage());
+    </script>
+</body>
+</html>
